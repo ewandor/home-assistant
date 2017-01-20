@@ -6,6 +6,7 @@ Adds support for advanced thermostat units.
 import logging
 
 import voluptuous as vol
+from collections import OrderedDict
 
 from homeassistant.components import switch
 from homeassistant.components.climate import (
@@ -105,7 +106,7 @@ class AdvancedThermostat(GenericThermostat):
 
         self.current_operation_mode = None
         self.default_operation_mode = None
-        self.operation_dict = {}
+        self.operation_dict = OrderedDict()
         for i, operation in enumerate(operation_list):
             name = operation[CONF_NAME] if CONF_NAME in operation else i
             if i == 0:
