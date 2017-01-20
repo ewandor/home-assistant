@@ -118,7 +118,7 @@ class AdvancedThermostat(GenericThermostat):
             )
 
         self._unit = hass.config.units.temperature_unit
-        self.set_operation_mode(self.default_operation_mode)
+        self._set_current_operation_mode(self.default_operation_mode)
 
     @property
     def target_temperature(self):
@@ -138,20 +138,25 @@ class AdvancedThermostat(GenericThermostat):
         pass
 
     def set_operation_mode(self, operation_mode):
-        if self._sensor_callback is not None:
-            self._sensor_callback()
+        self._set_current_operation_mode(operation_mode)
+        self.schedule_update_ha_state()
 
+    def _set_current_operation_mode(self, operation_mode):
         self.current_operation_mode = operation_mode
         operation = self.operation_dict[operation_mode]
 
         self._target_temp = operation.target_temp
-        self._sensor_callback = track_state_change(self.hass, operation.target_sensor, self._sensor_changed)
+        self._set_target_sensor(operation.target_sensor)
 
         sensor_state = self.hass.states.get(operation.target_sensor)
         if sensor_state:
             self._update_temp(sensor_state)
 
-        self.schedule_update_ha_state()
+    def _set_target_sensor(self, target_sensor):
+        if self._sensor_callback is not None:
+            self._sensor_callback()
+
+        self._sensor_callback = track_state_change(self.hass, target_sensor, self._sensor_changed)
 
     @property
     def current_operation(self):
