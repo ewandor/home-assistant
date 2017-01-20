@@ -151,6 +151,7 @@ class AdvancedThermostat(GenericThermostat):
         sensor_state = self.hass.states.get(operation.target_sensor)
         if sensor_state:
             self._update_temp(sensor_state)
+            self._control_heating()
 
     def _set_target_sensor(self, target_sensor):
         if self._sensor_callback is not None:
