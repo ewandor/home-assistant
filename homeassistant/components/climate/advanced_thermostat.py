@@ -151,6 +151,8 @@ class AdvancedThermostat(GenericThermostat):
         if sensor_state:
             self._update_temp(sensor_state)
 
+        self.schedule_update_ha_state()
+
     @property
     def current_operation(self):
         return self.operation_mode
