@@ -49,6 +49,7 @@ class MoonSensor(Entity):
 
     @property
     def state(self):
+        return self._state
         """Return the state of the device."""
         if self._state == 0:
             return 'New moon'
