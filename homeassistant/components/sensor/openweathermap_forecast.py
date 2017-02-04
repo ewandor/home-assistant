@@ -64,13 +64,13 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     data = WeatherData(owm, hass.config.latitude, hass.config.longitude)
 
     dev = []
-    for i in range(0, 7):
+    for i in range(0, 8):
         dev.append(OpenWeatherMapSensor(
             name, data, 'forecast_weather', None, i))
         dev.append(OpenWeatherMapSensor(
             name, data, 'forecast_temperature', SENSOR_TYPES['forecast_temperature'][1], i))
 
-    for day_offset in range(1, 4):
+    for day_offset in range(1, 5):
         dev.append(OpenWeatherMapSensor(
             name, data, 'forecast_weather', None, None, day_offset))
         dev.append(OpenWeatherMapSensor(
