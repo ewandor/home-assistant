@@ -94,6 +94,7 @@ class AdvancedThermostat(GenericThermostat):
         self.ac_mode = ac_mode
         self.min_cycle_duration = min_cycle_duration
         self._tolerance = tolerance
+        self._enabled = True
 
         self._active = False
         self._cur_temp = None
