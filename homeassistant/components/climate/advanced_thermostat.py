@@ -15,7 +15,8 @@ from homeassistant.components.climate.generic_thermostat import GenericThermosta
 from homeassistant.const import (
     ATTR_UNIT_OF_MEASUREMENT, STATE_ON, STATE_OFF, ATTR_TEMPERATURE)
 from homeassistant.helpers import condition
-from homeassistant.helpers.event import track_state_change
+from homeassistant.helpers.event import (
+    async_track_state_change)
 import homeassistant.helpers.config_validation as cv
 
 _LOGGER = logging.getLogger(__name__)
@@ -136,8 +137,8 @@ class AdvancedThermostat(GenericThermostat):
 
         sensor_state = self.hass.states.get(operation.target_sensor)
         if sensor_state:
-            self._update_temp(sensor_state)
-            self._control_heating()
+            self._async_update_temp(sensor_state)
+            self._async_control_heating()
 
     def _set_target_sensor(self, target_sensor):
         if self._sensor_callback is not None:
