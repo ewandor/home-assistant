@@ -24,6 +24,7 @@ _LOGGER = logging.getLogger(__name__)
 
 CONF_ATTRIBUTION = "Data provided by OpenWeatherMap"
 CONF_FORECAST = 'forecast'
+CONF_LANGUAGE = 'language'
 
 DEFAULT_NAME = 'OWM'
 
@@ -39,7 +40,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_MONITORED_CONDITIONS, default=[]):
         vol.All(cv.ensure_list, [vol.In(SENSOR_TYPES)]),
     vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-    vol.Optional(CONF_FORECAST, default=False): cv.boolean
+    vol.Optional(CONF_FORECAST, default=False): cv.boolean,
+    vol.Optional(CONF_LANGUAGE, default=None): cv.string,
 })
 
 
@@ -54,8 +56,11 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     SENSOR_TYPES['forecast_temperature'][1] = hass.config.units.temperature_unit
 
     name = config.get(CONF_NAME)
+    language = config.get(CONF_LANGUAGE)
+    if isinstance(language, str):
+        language = language.lower()[:2]
 
-    owm = OWM(config.get(CONF_API_KEY))
+    owm = OWM(API_key=config.get(CONF_API_KEY), language=language)
 
     if not owm:
         _LOGGER.error("Unable to connect to OpenWeatherMap")
@@ -82,7 +87,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 class OpenWeatherMapSensor(Entity):
     """Implementation of an OpenWeatherMap sensor."""
 
-    def __init__(self, name, weather_data, sensor_type, temp_unit, index, day_offset = None):
+    def __init__(self, name, weather_data, sensor_type, temp_unit, index, day_offset=None):
         if day_offset is None:
             name_suffix = "%dh" % ((index + 1) * 3)
         else:
@@ -164,6 +169,10 @@ class WeatherData(object):
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         """Get the latest data from OpenWeatherMap."""
-        obs = self.owm.three_hours_forecast_at_coords(
-            self.latitude, self.longitude)
-        self.fc_data = obs.get_forecast()
+        try:
+            obs = self.owm.three_hours_forecast_at_coords(
+                self.latitude, self.longitude)
+            self.fc_data = obs.get_forecast()
+        except (ConnectionResetError, TypeError):
+            _LOGGER.warning("Failed to fetch forecast")
+
