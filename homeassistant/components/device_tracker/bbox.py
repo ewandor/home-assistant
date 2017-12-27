@@ -8,13 +8,25 @@ from collections import namedtuple
 import logging
 from datetime import timedelta
 
+import voluptuous as vol
+
+import homeassistant.helpers.config_validation as cv
+
 import homeassistant.util.dt as dt_util
-from homeassistant.components.device_tracker import DOMAIN, DeviceScanner
+from homeassistant.components.device_tracker import (
+    DOMAIN, PLATFORM_SCHEMA, DeviceScanner)
 from homeassistant.util import Throttle
+from homeassistant.const import CONF_HOST
 
 REQUIREMENTS = ['pybbox==0.0.5-alpha']
 
 _LOGGER = logging.getLogger(__name__)
+
+DEFAULT_HOST = '192.168.1.254'
+
+PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
+    vol.Optional(CONF_HOST, default=DEFAULT_HOST): cv.string
+})
 
 MIN_TIME_BETWEEN_SCANS = timedelta(seconds=60)
 
@@ -28,12 +40,12 @@ def get_scanner(hass, config):
 
 Device = namedtuple('Device', ['mac', 'name', 'ip', 'last_update'])
 
-
 class BboxDeviceScanner(DeviceScanner):
     """This class scans for devices connected to the bbox."""
 
     def __init__(self, config):
         """Initialize the scanner."""
+        self.host = config.get(CONF_HOST)
         self.last_results = []  # type: List[Device]
 
         self.success_init = self._update_info()
@@ -64,7 +76,7 @@ class BboxDeviceScanner(DeviceScanner):
 
         import pybbox
 
-        box = pybbox.Bbox()
+        box = pybbox.Bbox(self.host)
         result = box.get_all_connected_devices()
 
         now = dt_util.now()
