@@ -3,21 +3,20 @@ Adds support for advanced thermostat units.
 
 
 """
+import asyncio
 import logging
 
 import voluptuous as vol
 from collections import OrderedDict
 
-from homeassistant.components import switch
 from homeassistant.components.climate import (
-    STATE_HEAT, STATE_COOL, STATE_IDLE, ClimateDevice, PLATFORM_SCHEMA)
-from homeassistant.components.climate.generic_thermostat import GenericThermostat
-from homeassistant.const import (
-    ATTR_UNIT_OF_MEASUREMENT, STATE_ON, STATE_OFF, ATTR_TEMPERATURE)
-from homeassistant.helpers import condition
+    PLATFORM_SCHEMA, SUPPORT_OPERATION_MODE, SUPPORT_TARGET_TEMPERATURE)
+from homeassistant.components.climate.generic_thermostat import GenericThermostat, ATTR_OPERATION_MODE
+
 from homeassistant.helpers.event import (
     async_track_state_change)
 import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers.restore_state import async_get_last_state
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,6 +40,8 @@ CONF_HOT_TOLERANCE = 'hot_tolerance'
 CONF_KEEP_ALIVE = 'keep_alive'
 CONF_OPERATION_LIST = 'operation_list'
 CONF_ICON = 'icon'
+
+SUPPORT_FLAGS = SUPPORT_TARGET_TEMPERATURE | SUPPORT_OPERATION_MODE
 
 MODE_SCHEMA = vol.Schema({
     vol.Optional(CONF_NAME): cv.string,
@@ -96,6 +97,7 @@ class AdvancedThermostat(GenericThermostat):
     def __init__(self, hass, name, heater_entity_id, sensor_entity_id,
                  min_temp, max_temp, target_temp, ac_mode, min_cycle_duration,
                  cold_tolerance, hot_tolerance, keep_alive, operation_list):
+
         """Initialize the thermostat."""
         self.hass = hass
         self._name = name
@@ -133,6 +135,15 @@ class AdvancedThermostat(GenericThermostat):
 
         self._unit = hass.config.units.temperature_unit
         self._set_current_operation_mode(self.default_operation_mode)
+
+    @asyncio.coroutine
+    def async_added_to_hass(self):
+        old_state = yield from async_get_last_state(self.hass,
+                                                    self.entity_id)
+        if old_state is not None:
+            operation_mode = old_state.attributes[ATTR_OPERATION_MODE]
+            if operation_mode in self.operation_dict:
+                self._set_current_operation_mode(operation_mode)
 
     def set_mode(self, **kwargs):
         pass
