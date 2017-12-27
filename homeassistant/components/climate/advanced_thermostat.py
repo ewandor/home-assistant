@@ -8,13 +8,10 @@ import logging
 import voluptuous as vol
 from collections import OrderedDict
 
-from homeassistant.components import switch
 from homeassistant.components.climate import (
-    STATE_HEAT, STATE_COOL, STATE_IDLE, ClimateDevice, PLATFORM_SCHEMA)
+    PLATFORM_SCHEMA, SUPPORT_OPERATION_MODE, SUPPORT_TARGET_TEMPERATURE)
 from homeassistant.components.climate.generic_thermostat import GenericThermostat
-from homeassistant.const import (
-    ATTR_UNIT_OF_MEASUREMENT, STATE_ON, STATE_OFF, ATTR_TEMPERATURE)
-from homeassistant.helpers import condition
+
 from homeassistant.helpers.event import (
     async_track_state_change)
 import homeassistant.helpers.config_validation as cv
@@ -41,6 +38,8 @@ CONF_HOT_TOLERANCE = 'hot_tolerance'
 CONF_KEEP_ALIVE = 'keep_alive'
 CONF_OPERATION_LIST = 'operation_list'
 CONF_ICON = 'icon'
+
+SUPPORT_FLAGS = SUPPORT_TARGET_TEMPERATURE | SUPPORT_OPERATION_MODE
 
 MODE_SCHEMA = vol.Schema({
     vol.Optional(CONF_NAME): cv.string,
@@ -133,6 +132,10 @@ class AdvancedThermostat(GenericThermostat):
 
         self._unit = hass.config.units.temperature_unit
         self._set_current_operation_mode(self.default_operation_mode)
+
+    @asyncio.coroutine
+    def async_added_to_hass(self):
+        passcd
 
     def set_mode(self, **kwargs):
         pass
